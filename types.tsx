@@ -1,24 +1,12 @@
-export enum MainNav {
-  FrontPage = "FRONT_PAGE",
+export enum RootNavPages {
+  FrontPage = "FRONT",
   SignInPage = "SIGN_IN",
-  LoginPage = "LOGIN_PAGE",
-  MainPage = "MAIN_PAGE"
+  LoginPage = "LOGIN",
+  MainPage = "MAIN"
 };
 
-export type RootStackParamList = {
-  Root: undefined;
-  NotFound: undefined;
-};
-
-export type BottomTabParamList = {
-  TabOne: undefined;
-  TabTwo: undefined;
-};
-
-export type TabOneParamList = {
-  TabOneScreen: undefined;
-};
-
-export type TabTwoParamList = {
-  TabTwoScreen: undefined;
-};
+export enum MainPageNavPages {
+  RatingsPage = "RATINGS",
+  PartnerPage = "PARTNER",
+  RatePage = "RATE"
+}

@@ -1,6 +1,7 @@
 import { StyleSheet, StatusBar as StatusBarInfo } from 'react-native';
 
-export const TailwindColors: {[colorName: string]: {[darkness: number]: string}} = {
+// colors are the old tailwind css colors
+export const Colors: {[colorName: string]: {[darkness: number]: string}} = {
     'gray': {
       100: '#f7fafc',
       200: '#edf2f7',
@@ -125,9 +126,9 @@ export const TailwindColors: {[colorName: string]: {[darkness: number]: string}}
 }
 
 export const StatusBarHeight = StatusBarInfo?.currentHeight ?? 0;
-export const MaleColor = TailwindColors.blue[400];
-export const FemaleColor = TailwindColors.pink[400];
-export const UnisexColor = TailwindColors.indigo[400];
+export const MaleColor = Colors.blue[400];
+export const FemaleColor = Colors.pink[400];
+export const UnisexColor = Colors.indigo[400];
 
 export const remText: ((x: number) => number) = (x) => 16 * x;
 export const rem: ((x: number) => number) = (x) => 16 * 1.15 * x;
@@ -137,12 +138,17 @@ export const GlobalStyle = StyleSheet.create({
         fontFamily: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
             'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
             sans-serif`,
-        color: TailwindColors.grey[800]
+        color: Colors.grey[800]
     },
 
     row: {
         display: 'flex',
         flexDirection: 'row'
+    },
+
+    rowReversed: {
+      display: 'flex',
+      flexDirection: "row-reverse"
     },
 
     col: {
@@ -153,6 +159,11 @@ export const GlobalStyle = StyleSheet.create({
     center: {
         display: 'flex',
         justifyContent: 'center'
+    },
+
+    spaceEvenly: {
+      display: 'flex',
+      justifyContent: 'space-evenly'
     },
 
     centerCross: {
@@ -170,13 +181,18 @@ export const GlobalStyle = StyleSheet.create({
         textAlign: 'center'
     },
 
-    spaceEvenly: {
-        justifyContent: 'space-evenly'
-    },
-
     spacer: {
         flexGrow: 1,
         flexShrink: 1
+    },
+
+
+    h1: {
+      fontSize: remText(5),
+      margin: rem(1),
+      fontWeight: "bold",
+      color: Colors.grey[800],
+      textAlign: 'center'
     },
 
     /* ============================== */
@@ -187,8 +203,8 @@ export const GlobalStyle = StyleSheet.create({
     loader: {
         //border: `5px solid ${TailwindColors.grey[200]}`,
         borderWidth: 5,
-        borderColor: TailwindColors.grey[200],
-        borderTopColor: TailwindColors.indigo[500],
+        borderColor: Colors.grey[200],
+        borderTopColor: Colors.indigo[500],
         borderRadius: 25,
         width: '50px',
         height: '50px',

@@ -2,69 +2,72 @@ import React from 'react';
 import {isMobile, SetState } from './Utilities';
 import Icons from './Icons';
 
-import { MainNav } from '../types';
+import { RootNavPages } from '../types';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, Dimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { GlobalStyle, TailwindColors, rem, remText } from '../AppStyles';
-import { FrontPagesNav } from './FrontPagesNav';
+import { GlobalStyle, Colors, rem, remText } from '../AppStyles';
+import { FrontPagesNav } from './FrontPagesUtilities';
 
 function FrontPage(){
 
     const navigation = useNavigation();
 
-    return <View style={[FrontPageStyle.frontPage, GlobalStyle.col, GlobalStyle.pageStyle]}>
-        <View style={[FrontPageStyle.logoContainer, GlobalStyle.row, GlobalStyle.centerAll, GlobalStyle.spacer]}>
+    return <View style={[FrontStyle.frontPage]}>
+        <View style={[FrontStyle.logoContainer]}>
             {Icons.Logo}
-            {/*Leaves*/}
         </View>
-        <View style={[FrontPageStyle.bottomHalf]}>
+        <View style={[FrontStyle.bottomHalf]}>
             <View style={[
-                    FrontPageStyle.heading, 
-                    isMobile() ? GlobalStyle.col : GlobalStyle.row, 
-                    GlobalStyle.center
+                    FrontStyle.heading, 
+                    isMobile() ? GlobalStyle.col : GlobalStyle.row
             ]}>
-                <Text style={FrontPageStyle.heading_h1}>
-                    Finding <Text style={FrontPageStyle.heading_h1_span}>Name</Text>o
-                    </Text>
+                <Text style={FrontStyle.heading_h1}>
+                    Finding <Text style={FrontStyle.heading_h1_span}>Name</Text>o
+                </Text>
             </View>
             <FrontPagesNav 
                 mainButton={{
                     label: "login", 
-                    clickHandler: () => navigation.navigate(MainNav.LoginPage)
+                    clickHandler: () => navigation.navigate(RootNavPages.LoginPage)
                 }}
                 secondaryButton={{
                     label: "sign up",
-                    clickHandler: () => navigation.navigate(MainNav.SignInPage)
+                    clickHandler: () => navigation.navigate(RootNavPages.SignInPage)
                 }}
-            >
-            </FrontPagesNav>
+            />
         </View>
     </View>;
 }
 
 export default FrontPage;
 
-const FrontPageStyle = StyleSheet.create({
+const FrontStyle = StyleSheet.create({
     frontPage: {
         height: '100%',
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        ...GlobalStyle.col, 
+        ...GlobalStyle.pageStyle
     },
 
     logoContainer: {
         marginTop: rem(1),
+        ...GlobalStyle.row, 
+        ...GlobalStyle.centerAll, 
+        ...GlobalStyle.spacer
     },
 
     heading: {
         //marginTop: rem(1),
         marginLeft: rem(1),
         marginBottom: rem(1.5),
+        ...GlobalStyle.center
     },
 
     heading_h1: {
         fontSize: remText(5),
         fontWeight: "bold",
-        color: TailwindColors.grey[800],
+        color: Colors.grey[800],
     },
 
     heading_h1_last_child: {
@@ -72,10 +75,10 @@ const FrontPageStyle = StyleSheet.create({
     },
 
     heading_h1_span: {
-        color: TailwindColors.indigo[700]
+        color: Colors.indigo[700]
     },
 
     bottomHalf: {
-       backgroundColor: TailwindColors.indigo[100]
+       backgroundColor: Colors.indigo[100]
     }
 });

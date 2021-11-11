@@ -4,26 +4,25 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import useCachedResources from './hooks/useCachedResources';
 import useColorScheme from './hooks/useColorScheme';
-import Navigation from './navigation';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import { Text, View } from './components/Themed';
 
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { RootStackParamList, MainNav } from './types';
+import { RootNavPages } from './types';
 import FrontPage from './components/FrontPage';
-//import SignupPage from './components/SignupPage';
+import SignupPage from './components/SignupPage';
 import LoginPage from './components/LoginPage';
 import { StatusBarHeight } from './AppStyles';
-//import MainPage from './components/mainContent/MainPage';
+import HomePage from './components/mainContent/MainPage';
 
 const Stack = createStackNavigator();
 
 const pages: {[pageName: string]: (...args: any[]) => JSX.Element} = {
-  [MainNav.FrontPage]: FrontPage,
-  //[MainNav.SignInPage]: SignupPage,
-  [MainNav.LoginPage]: LoginPage,
-  //[MainNav.MainPage]: MainPage
+  [RootNavPages.FrontPage]: FrontPage,
+  [RootNavPages.SignInPage]: SignupPage,
+  [RootNavPages.LoginPage]: LoginPage,
+  [RootNavPages.MainPage]: HomePage
 }
 
 export default function App() {
@@ -49,11 +48,13 @@ export default function App() {
         {/*<Navigation colorScheme={colorScheme} />*/}
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {Object.keys(pages).map((pageName, i) => <Stack.Screen
-              name={pageName}
-              component={pages[pageName]}
-              key={i}
-            />)}
+            {Object.entries(pages).map(([pageName, page], i) => 
+              <Stack.Screen
+                name={pageName}
+                component={page}
+                key={i}
+              />
+            )}
           </Stack.Navigator>
         </NavigationContainer>
 

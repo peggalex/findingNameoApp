@@ -1,11 +1,20 @@
 import UserObject from './UserObject';
 import axios from 'axios';
 import {Rate} from './Ratings'
+import { JSHash, CONSTANTS } from "react-native-hash"; 
 
 import { Dimensions } from 'react-native';
 import React from 'react';
 
-export var isMobile = () => {
+const isDev = false;
+
+export const serverUrl = (isDev) ? "localhost:3000" : "https://alexpegg.com/findingNameo";
+
+export const isAlphaNumeric = (str: string): boolean => RegExp(/^[\da-z]*$/i).test(str);
+export const isMaxLength = (str: string, len: number): boolean => str.length <= len;
+export const isNotEmpty = (str: string): boolean => str !== "";
+
+export var isMobile = (): boolean => {
     let dim = Dimensions.get('window');
     return dim.height >= dim.width;
 };
@@ -14,26 +23,13 @@ export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 export type Ref<T> = React.MutableRefObject<T>;
 export type Dispatch<T> = React.Dispatch<T>;
 
-export function arrayBufferToHex(arrayBuffer: ArrayBuffer){
-    let intArray = new Uint8Array(arrayBuffer),
-        hashArray = Array.from(intArray),
-        hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    return hashHex;
-}
-
-export async function hash(toHash: string){
-    // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
-    let hashEnc = new TextEncoder().encode(toHash),                        				  
-        hashBuffer = await crypto.subtle.digest('SHA-512', hashEnc),
-        keyHex = arrayBufferToHex(hashBuffer);
-
-    return keyHex;
-}
-
+export const hash = async (toHash: string): Promise<string> => await JSHash(
+    toHash, CONSTANTS.HashAlgorithms.sha512
+);
+/*
 export async function waitForAjaxCall(method: 'post' | 'get' | 'put', url: string): Promise<any> {
 	url = url.replace(/[ \t\n]/g, ''); // get rid of empty spaces and newlines
-
+    var fullUrl = `${serverUrl}${url}`;
 	return new Promise(async (resolve, reject) =>{
 		try {
             let axiosFunc: (url: string) => any;
@@ -49,16 +45,69 @@ export async function waitForAjaxCall(method: 'post' | 'get' | 'put', url: strin
                     break;
             }
 
-			var response = await axiosFunc(`${process.env.PUBLIC_URL}/${url}`);
-			resolve(response.data);
+            //var response = await axiosFunc(fullUrl);
+			//resolve(response.data);
+            let response = await fetch(fullUrl, {
+                method: method.toUpperCase(),
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) reject(`${response.status} | ${response.statusText} | url: ${fullUrl}`);
+            resolve(response.json);
 		} catch (error) {
-			console.log('axios error:', error);
+			console.log('fetch error:', error, ` | url: ${fullUrl}`);
 			reject(error);
 		}
 	});
 }
+*/
 
-export function messageStrToJSON(messageStr: string){
+export enum RestfulType {
+    POST,
+    GET,
+    PUT
+}
+
+export function CallAPI(
+    url: string, 
+    method: RestfulType, 
+    body: any = null,
+    headers: any = {}
+): Promise<Response> {
+	url = url.replace(/[ \t\n]/g, ''); // get rid of empty spaces and newlines
+    var fullUrl = `${serverUrl}/${url}`;
+	return fetch(fullUrl, {
+        method: RestfulType[method],
+        body: body,
+        headers: headers
+	});
+}
+
+export const CallAPIToJson = async (
+    url: string,
+    method: RestfulType,
+    body?: Object
+): Promise<any> => new Promise((resolve, reject) => 
+    CallAPI(
+        url, 
+        method, 
+        JSON.stringify(body),
+        {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    ).then(async (response) => {
+        if (!response.ok){
+            reject(await response.json());
+        } else {
+            resolve(await response.json());
+        }
+    }).catch((reason) => {alert(reason)})
+);
+
+export function messageStrToJSON(messageStr: string): object{
 	let message = JSON.parse(messageStr);
 	if (message.error != null){
 		throw new Error(message.error);
@@ -66,8 +115,8 @@ export function messageStrToJSON(messageStr: string){
 	return message;
 }
 
-export const avg = (x1: any, x2: any) => {
-    let x = ((parseFloat(x1)+parseFloat(x2))/2).toFixed(1);
+export const avg = (x1: any, x2: any): string => {
+    let x = ((parseFloat(x1) + parseFloat(x2))/2).toFixed(1);
     return isNaN(x as any) ? "?" : x;
 };
 
@@ -90,7 +139,7 @@ export const hasAttributes = (obj: Object, attrs: string[]): boolean => {
 
 export const getRatingsGetIsMore = async (filter: string, subFilter: string, range: number, rangeStart: number, searchTerm: string): Promise<{ratings: Rate[], isMore: boolean}> => {
         
-    let {ratings, isMore}: {ratings: Rate[], isMore: boolean} = await waitForAjaxCall('get', `
+    let {ratings, isMore}: {ratings: Rate[], isMore: boolean} = await CallAPIToJson(`
         /ratings/${UserObject.getUsername()}
         /password/${UserObject.getPassword()}
         /filter/${filter.replace(/ /g, '')}
@@ -98,7 +147,9 @@ export const getRatingsGetIsMore = async (filter: string, subFilter: string, ran
         /range/${range}
         /rangeStart/${rangeStart}
         /search/${searchTerm}
-    `);
+    `, RestfulType.GET);
+    console.table(ratings);
+    console.log("isMore:", isMore);
     return {ratings: ratings, isMore: isMore}
 
 }

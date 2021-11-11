@@ -1,4 +1,4 @@
-import {waitForAjaxCall} from './Utilities';
+import {CallAPIToJson, RestfulType} from './Utilities';
 import UserObject from './UserObject';
 
 export class DynamicRating {
@@ -49,11 +49,11 @@ export class Rate {
 
     static async getRandomRate(gender: 'any'|'male'|'female'|'unisex'){
         // gender in {any, male, female, unisex}
-        let res = await waitForAjaxCall('get', `
+        let res = await CallAPIToJson(`
             /randomName/${UserObject.getUsername()}
             /password/${UserObject.getPassword()}
             /gender/${gender}
-        `)
+        `, RestfulType.GET)
         let rate = new Rate(res);
         if (rate.name == null) {
             console.log('res', res);

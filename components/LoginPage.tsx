@@ -1,110 +1,92 @@
 import React from 'react'
-import {SetState, hash, waitForAjaxCall} from './Utilities';
+import {SetState, hash, isAlphaNumeric, isMaxLength, isNotEmpty, CallAPIToJson, RestfulType} from './Utilities';
 import Icons from './Icons';
 import UserObject from './UserObject';
 
-import { MainNav } from '../types';
+import { RootNavPages } from '../types';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, TextInput } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { GlobalStyle, TailwindColors, rem, remText } from '../AppStyles';
-import { FrontPagesNav } from './FrontPagesNav';
+import { GlobalStyle, Colors, rem, remText } from '../AppStyles';
+import { FrontPagesNav, InputGroup } from './FrontPagesUtilities';
 
-const LoginPageStyles = StyleSheet.create({
+const LoginStyle = StyleSheet.create({
     loginPage: {
+        ...GlobalStyle.col, 
+        ...GlobalStyle.centerCross, 
+        ...GlobalStyle.pageStyle,
         width: "100%",
-        backgroundColor: TailwindColors.indigo[100]
-    },
-
-    title: {
-        fontSize: remText(5),
-        margin: 16,
-        fontWeight: "bold",
-        color: TailwindColors.grey[800],
-        textAlign: 'center'
+        backgroundColor: Colors.indigo[100]
     },
 
     logoContainer: {
-        flexGrow: 1,
-        height: rem(17),
         opacity: 0.75,
-        marginTop: rem(1),
-        marginBottom: rem(1)
-    },
-
-    buttons_button: {
-        width: '40%',
-        height: 52.5,
-        borderRadius: 10,
-        fontSize: 32,
-        fontWeight: '300',
-        textAlign: 'center',
-        padding: 5
-    },
-
-    signup: {
-        backgroundColor: 'white',
-        color: TailwindColors.indigo[700]
-    },
-
-    inputLabel: {
-        color: TailwindColors.indigo[700],
-        textAlign: 'center',
-        fontSize: remText(2),
-        marginTop: 16,
-        marginBottom: 16 * 0.3
-    },
-
-    input: {
-        borderColor: TailwindColors.indigo[700],
-        borderWidth: rem(0.15),
-        fontSize: rem(1),
-        textAlign: 'center',
-        height: rem(2),
-        width: rem(14),
-        backgroundColor: 'white',
-        borderRadius: rem(2)
+        width: '100%',
+        marginBottom: rem(2),
+        ...GlobalStyle.row, 
+        ...GlobalStyle.centerAll, 
+        ...GlobalStyle.spacer
     }
 });
 
 function LoginPage(){
+    let [username, setUsername] = React.useState("");
+    let [password, setPassword] = React.useState("");
 
     const navigation = useNavigation();
 
-    const login = async (e: any): Promise<boolean> => {
-        e.preventDefault();
+    const validateLogin = () => {
 
-        let form: HTMLFormElement = e.target;
-        let username: string = form.username.value;
-        let passwordHashed: string = await hash(form.password.value);
-        let isLoggedIn: boolean = false;
+        let labelToValue: {[name: string]: string} = {
+            "username": username,
+            "password": password
+        };
+        let maxLength = 20;
+        for (let [label, value] of Object.entries(labelToValue))
+        {   
+            if (!isNotEmpty(value)) throw Error(`Field '${label}' cannot be empty`);
+
+            if (!isAlphaNumeric(value)) throw Error(`Field '${label}' is not alpha numeric`);
+
+            if (!isMaxLength(value, maxLength)) throw Error(
+                `Field '${label}' is too long, keep to within ${maxLength} characters`
+            );
+        }
+    }
+
+    const login = async (): Promise<void> => {
+
+        try {
+            validateLogin();
+        } catch (e: any){
+            return alert(e.message);
+        }
+
+        let passwordHashed: string = await hash(password);
 
         try {
             let loginEndpoint = `
                 /login/${username}
                 /password/${passwordHashed}
             `;
-            await waitForAjaxCall('get', loginEndpoint);
-            UserObject.set(username, passwordHashed);
-            navigation.navigate(MainNav.MainPage);
-        } catch {
-            alert("login failed.");
+            await CallAPIToJson(loginEndpoint, RestfulType.GET);
+        } catch (e: any){
+            console.log(e.message);
+            alert("Login failed.");
+            return;
         }
-
-        return false;
+        UserObject.set(username, passwordHashed);
+        navigation.navigate(RootNavPages.MainPage);
     }
 
-    return <View style={[LoginPageStyles.loginPage, GlobalStyle.col, GlobalStyle.centerCross, GlobalStyle.pageStyle]}>
-        <Text style={LoginPageStyles.title}>Login</Text>
+    return <View style={[LoginStyle.loginPage]}>
+        <Text style={GlobalStyle.h1}>Login</Text>
 
-        <Text style={LoginPageStyles.inputLabel}>username</Text>
-        <TextInput style={LoginPageStyles.input}></TextInput>
+        <InputGroup label='username' setState={setUsername}/>
+        <InputGroup label='password' setState={setPassword} isPassword={true}/>
 
-        <Text style={LoginPageStyles.inputLabel}>password</Text>
-        <TextInput secureTextEntry={true} style={LoginPageStyles.input}></TextInput>
-
-        <View style={[LoginPageStyles.logoContainer]}>
-            {Icons.Logo}
+        <View style={[LoginStyle.logoContainer]}>
+            {Icons.LogoNoText}
         </View>
 
         <FrontPagesNav 
@@ -114,8 +96,9 @@ function LoginPage(){
                 }}
                 secondaryButton={{
                     label: "back",
-                    clickHandler: () => navigation.navigate(MainNav.FrontPage)
+                    clickHandler: () => navigation.navigate(RootNavPages.FrontPage)
                 }}
+                reversed={true}
             />
 
     </View>;

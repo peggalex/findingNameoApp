@@ -1,3 +1,4 @@
+import { serverUrl } from "./Utilities";
 
 class UserObject {
     static instance: UserObject = new UserObject(); // singleton
@@ -44,7 +45,7 @@ class UserObject {
       let wsPort = parseInt('1234')+1;
 
       let ws: WebSocket = new WebSocket(
-        `wss://${window.location.hostname}:${wsPort}/?username=${username}&password=${password}`
+        `wss://${serverUrl}/webSocket/?username=${username}&password=${password}`
       );
           ws.onopen = (event) => console.log("Connected to websocket.");
           return ws;

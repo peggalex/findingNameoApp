@@ -1,66 +1,101 @@
-/*import React from 'react';
-import {SetState, Ref, hash, waitForAjaxCall} from './Utilities';
+import React from 'react';
+import {SetState, Ref, hash, isAlphaNumeric, isMaxLength, isNotEmpty, CallAPIToJson, RestfulType} from './Utilities';
 
-import { MainNav } from '../types';
+import { RootNavPages } from '../types';
 import { useNavigation } from '@react-navigation/native';
+import { StyleSheet, TextInput } from 'react-native';
+import { Text, View } from '../components/Themed';
+import { GlobalStyle, Colors, rem, remText } from '../AppStyles';
+import { FrontPagesNav, InputGroup } from './FrontPagesUtilities';
 
 function SignupPage(){
     const navigation = useNavigation();
-    let formRef: Ref<HTMLFormElement|null> = React.useRef(null);
+    
+    let [username, setUsername] = React.useState("");
+    let [nickname, setNickname] = React.useState("");
+    let [password, setPassword] = React.useState("");
+    let [password2, setPassword2] = React.useState("");
 
-    const validate = (): boolean => {
-        let form = formRef.current!;
-        if (form.password.value !== form.password2.value){
-            form.password2.setCustomValidity("passwords must match.");
-        } else {
-            form.password2.setCustomValidity('');
+    const validateSignup = () => {
+
+        let labelToValue: {[name: string]: string} = {
+            "username": username,
+            "password": password,
+            "nickname": nickname,
+            "retyped password": password2
+        };
+        let maxLength = 20;
+        for (let [label, value] of Object.entries(labelToValue))
+        {   
+            if (!isNotEmpty(value)) throw Error(`Field '${label}' cannot be empty`);
+
+            if (!isAlphaNumeric(value)) throw Error(`Field '${label}' is not alpha numeric`);
+
+            if (!isMaxLength(value, maxLength)) throw Error(
+                `Field '${label}' is too long, keep to within ${maxLength} characters`
+            );
         }
-        return form.password.value !== form.password2.value;
+
+        if (password !== password2) throw Error("Passwords don't match");
     }
 
-    const signup = async (e: React.FormEvent): Promise<boolean> => {
-        e.preventDefault();
+    const signup = async (): Promise<void> => {
 
-        let form = formRef.current!;
-        let passwordHashed = await hash(form.password.value);
         try {
-            await waitForAjaxCall('put', `
-                /register/${form.username.value}
-                /nickname/${form.nickname.value}
-                /password/${passwordHashed}
-            `);
-            alert("register successful!");
-            navigation.navigate(MainNav.LoginPage);
-        } catch {
-            alert("register failed.");
+            validateSignup();
+        } catch (e: any){
+            return alert(e.message);
         }
 
-        return false;
+        let passwordHashed = await hash(password);
+        try {
+            await CallAPIToJson(`
+                /register/${username}
+                /nickname/${nickname}
+                /password/${passwordHashed}
+            `, RestfulType.PUT);
+            alert("Register successful!");
+            navigation.navigate(RootNavPages.LoginPage);
+        } catch {
+            alert("Register failed.");
+        }
     }
 
-    return <form id='signupPage' onSubmit={signup} method='post' className='col centerCross' ref={formRef}>
-        <h1>Signup</h1>
+    return <View style={SignupStyle.signupPage}>
+        <Text style={GlobalStyle.h1}>Signup</Text>
 
-        <label htmlFor='username'>username</label>
-        <input name='username' type="text" pattern="[\dA-z_]{1,20}" title="Alphanumeric and underscores." required></input>
+        <InputGroup label='username' setState={setUsername}/>
+        <InputGroup label='nickname' setState={setNickname}/>
 
-        <label htmlFor='nickname'>nickname</label>
-        <input name='nickname' type="text" pattern="[\dA-z_ ]+" title="Alphanumeric, underscores and spaces." required></input>
+        <InputGroup label='password' setState={setPassword} isPassword={true} labelColor={Colors.grey[800]} fillColor={Colors.indigo[100]}/>
+        <InputGroup label='retype password' setState={setPassword2} isPassword={true} labelColor={Colors.grey[800]} fillColor={Colors.indigo[100]}/>
 
-        <label htmlFor='password'>password</label>
-        <input name='password' type='password' required></input>
+        <View style={GlobalStyle.spacer}></View>
 
-        <label htmlFor='password2'>retype password</label>
-        <input name='password2' type='password' required></input>
-
-        <div className='spacer'></div>
-
-        <div id='buttons' className="row center">
-            <button id='back' type="button" onClick={() => navigation.navigate(MainNav.FrontPage)}>back</button>
-            <button onClick={validate} id='signup' type="submit">signup</button>
-        </div>
-
-    </form>;
+        <FrontPagesNav 
+            secondaryButton={{
+                label: "back", 
+                clickHandler: () => navigation.navigate(RootNavPages.FrontPage)
+            }}
+            mainButton={{
+                label: "sign up",
+                clickHandler: () => signup()
+            }}
+            reversed={true}
+        />
+    </View>;
 }
 
-export default SignupPage;*/
+
+const SignupStyle = StyleSheet.create({
+    signupPage: {
+        ...GlobalStyle.col, 
+        ...GlobalStyle.centerCross, 
+        ...GlobalStyle.pageStyle,
+        backgroundColor: Colors.grey[200],
+        width: "100%"
+    }
+});
+
+
+export default SignupPage;
